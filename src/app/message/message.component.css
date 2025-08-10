@@ -1,0 +1,82 @@
+
+/* Modal backdrop styles */
+    .modal-backdrop {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-color: rgba(0, 0, 0, 0.5); /* Semi-transparent black overlay */
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 1060; /* Ensure it's above other content */
+      position:fixed;
+    }
+
+    /* Modal content styles */
+    .modal-content {
+      background-color: #fff;
+      border-radius: 0%;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+      width: 100%;
+      max-width: 400px; /* Max width for readability */
+      max-height: 250px;
+      animation: fadeIn 0.3s ease-out; /* Simple fade-in animation */
+      font-variant-caps:all-small-caps;
+      font-size:15px;
+    }
+
+    .modal-header {
+      padding: 5px;
+      border-bottom: 1px solid #dee2e6;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top-left-radius: 0.5rem;
+      border-top-right-radius: 0.5rem;
+    }
+
+    .modal-title {
+      margin-bottom: 0;
+      font-size: 1.25rem;
+      font-weight: 500;
+    }
+
+    .close-button {
+      background: none;
+      border: none;
+      font-size: 1.5rem;
+      cursor: pointer;
+      padding: 0;
+      line-height: 1;
+      color: #000; /* Default color for close button */
+      opacity: 0.5;
+    }
+
+    .close-button:hover {
+      opacity: 0.75;
+    }
+    .modal-body{
+      padding:10px 10px 0px 0px;
+      margin-left:6px;
+      
+    }
+    .modal-footer {
+      padding: 5px;
+      display: flex;
+      justify-content: flex-end;
+      border-bottom-left-radius: 0.5rem;
+      border-bottom-right-radius: 0.5rem;
+      border-top:1px solid #dee2e6
+    }
+    button{
+      border-radius: 50px;
+    }
+
+
+    /* Animation */
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(-20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }

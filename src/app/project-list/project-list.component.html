@@ -1,0 +1,201 @@
+<app-header [pageTitle]="'EMPLOYEE MANAGEMENT'" [subTitle]="'Project List'" [loggedInUsername]="loggedInUsername"
+  (logout)="LogOut()">
+</app-header>
+<div class="container mt-5">
+  <div class="dropdown d-flex align-items-center justify-content-end"
+    style=" padding:0px; position:fixed; top:95px; right:0px; z-index:1000">
+    <a class="nav-link dropdown-toggle text-white" href="javascript:void(0)" id="navbarDropdownUser" role="button"
+      aria-expanded="false">
+      <i class="bi-list me-0 fs-5 text-primary"> </i>
+    </a>
+    <ul class="dropdown-menu dropdown-menu-end " style="border-radius:0px; top:100%; overflow-y: auto;"
+      aria-labelledby="navbarDropdownUser">
+      <li><a class="dropdown-item text-primary" [routerLink]="['/project-form']"><i
+            class="bi bi-plus me-2 text-primary"></i>Add Project</a></li>
+      <li *ngIf="!showExpiredProject && (!showSelectedProject && !showCompletedProjects)"><a class="dropdown-item text-primary" (click)="downloadExcel()"><i
+            class="bi bi-file-earmark-excel me-2 text-primary"></i>Save as Excel</a></li>
+      <li *ngIf="!showExpiredProject && (!showSelectedProject && !showCompletedProjects)"><a class="dropdown-item text-primary" (click)="savePdf()"><i
+            class="bi bi-file-earmark-pdf me-2 text-primary"></i>Save as PDF</a></li>
+      <li *ngIf="!showCompletedProjects"><a class="dropdown-item text-primary" (click)="showCompletedProjects=true"><i
+            class="bi bi-check-circle-fill me-2 text-primary"></i>view Completed Projects</a></li>
+      <li *ngIf="showCompletedProjects"><a class="dropdown-item text-primary" (click)="showCompletedProjects=false"><i
+            class="bi bi-check-circle-fill me-2 text-primary"></i>view current Projects</a></li>
+    </ul>
+  </div>
+ 
+  
+<div  *ngIf="showBell && (!showCompletedProjects && expiringProjects.length > 0) " class="position-fixed top-50 end-0 p-3" style="z-index: 1050;">
+  <button class="btn btn-sm btn-primary position-relative" (click)="showToast = true">
+    <i class="bi bi-bell-fill"></i>
+    <span class="position-absolute top-0 start-100 translate-middle badge rounded-pill bg-danger">
+      {{ expiringProjects.length }}
+    </span>
+  </button>
+  <div class="toast-container position-fixed top-50 end-0 p-3" style="z-index: 1100;">
+  <div class="toast align-items-center text-bg-primary border-0 show" role="alert" aria-live="assertive" aria-atomic="true" *ngIf="showToast">
+    <div class="d-flex">
+      <div class="toast-body">
+        <div>
+         You have {{ expiringProjects.length }} project(s) nearing their end date!
+        <button class="btn btn-sm btn-outline-warning ms-0" (click)="showExpired()">view</button>
+        </div>
+      </div>
+      <button type="button" class="btn-close btn-close-white me-2 m-auto" (click)="showToast = false" aria-label="Close"></button>
+    </div>
+  </div>
+</div>
+
+</div>
+
+
+  <div *ngIf="!showCompletedProjects" class="d-flex justify-content-center mb-3 ">
+    <div class="position-relative w-50 d-flex justify-content-center gap-3 search-container">
+
+      <div class=" d-flex align-items-center" style="margin:0px;">
+        <select class="form-select form-select-sm" style="height: 32px;" [(ngModel)]="filterType" (change)="OnFilterChange($event)"> 
+          <option disabled value="Filter By">Filter By</option>
+          <option value="Name">Name</option>
+          <option value="Client">Client</option>
+        </select>
+      </div>
+
+      <div class="input-group" style="width: 70%;">
+        <input type="text" id="searchEmployee" name="searchEmployee" class="form-control px-2 "
+          style="border-radius:2px;font-size: 13px;" placeholder="Search" [(ngModel)]="searchTerm"
+          (input)="onSearchChange()">
+        <span class="input-group-text pe-2" style="border-radius:2px;font-size: 13px;"
+          onclick="document.getElementById('searchEmployee').focus()"><i class="bi bi-search text-muted">
+            search</i>
+        </span>
+
+        <div *ngIf="searchTerm && filteredProjects.length >0 && !showSelectedProject"
+          class="list-group position-absolute w-100"
+          style="border-radius:0px;  right:0%; top:100%;max-height: 115px; overflow-y: auto; z-index:1000;">
+          <a *ngFor="let suggestion of filteredProjects" class="list-group-item list-group-item-action"
+            (click)="selectProject(suggestion)">
+          <span *ngIf="filterType==='Name'">{{suggestion.name}}</span>
+          <span *ngIf="filterType==='Client'">{{suggestion.client}}-{{suggestion.name}}</span>
+
+          </a>
+        </div>
+
+      </div>
+      <button class="btn btn-sm btn-outline-secondary" title="Clear Search" (click)="clearSearch()">
+        <i class="bi bi-eraser-fill text-muted" style="font-size: 13px;"></i>
+      </button>
+
+    </div>
+  </div>
+
+  <div *ngIf="!showCompletedProjects && !isLoading" >
+    <div class="container mt-4">
+      <div *ngIf="allProjects.length > 0; else noProjectsFound">
+        <div class="row">
+          <div class="col-md-4 mb-4" *ngFor="let project of allProjects">
+            <div class="card shadow-lg h-100">
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between">
+                  <h6
+                    class="card-title text-primary bg-outline-dark text-center rounded d-flex justify-content-between">
+                    {{
+                    project.name }}
+                  </h6>
+                  <div><button class="btn btn-sm btn-outline-primary me-2"
+                      [routerLink]="['/project-form', project.id, 'edit']" title="Edit Project Details">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="confirmDeleteProject(project)"
+                      title="Delete Project">
+                      <i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+                <hr>
+                <p class="card-text"><strong>Client:</strong>{{ project.client }}</p>
+                <p class="card-text"><strong>Description:</strong> {{ project.description }}</p>
+                <p class="card-text"><strong>Skill Set:</strong> {{ project.requiredSkill }}</p>
+                <p class="card-text"><strong>Start Date:</strong> {{ project.startDate }}</p>
+                <p class="card-text"><strong>End Date:</strong> {{ project.endDate }}</p>
+                <p class="card-text" *ngIf="project.endDate && getDaysUntilExpiry(project.endDate)!=null"><strong
+                    style="color:red;">Project is ending in {{ getDaysUntilExpiry(project.endDate) }} day(s)! take
+                    Action!!</strong>
+
+                </p>
+                <div class="mt-auto d-flex justify-content-between">
+                  <button class="btn btn-secondary btn-sm " (click)="openViewModal(project)">View</button>
+                  <button class="btn btn-primary btn-sm" (click)="openAssignModal(project)">Assign</button>
+                </div>
+
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+
+    <ng-template #noProjectsFound>
+      <div class="alert alert-info text-center">No projects found.</div>
+    </ng-template>
+  </div>
+
+      
+ <div *ngIf=showCompletedProjects>
+     <h3 class="d-flex justify-content-center align-items-center" style="font-variant: small-caps;">completed projects</h3>
+     <div class="container mt-4">
+      <div *ngIf="completedProjects.length > 0; else noProjectsFound">
+        <div class="row">
+          <div class="col-md-4 mb-4" *ngFor="let project of completedProjects">
+            <div class="card shadow-lg h-100">
+              <div class="card-body d-flex flex-column">
+                <div class="d-flex justify-content-between">
+                  <h6
+                    class="card-title text-primary bg-outline-dark text-center rounded d-flex justify-content-between">
+                    {{
+                    project.name }}
+                  </h6>
+                  <div><button class="btn btn-sm btn-outline-primary me-2"
+                      [routerLink]="['/project-form', project.id, 'edit']" title="Edit Project Details">
+                      <i class="bi bi-pencil-square"></i>
+                    </button>
+                    <button class="btn btn-sm btn-outline-danger" (click)="confirmDeleteProject(project)"
+                      title="Delete Project">
+                      <i class="bi bi-trash"></i></button>
+                  </div>
+                </div>
+                <hr>
+                <p class="card-text"><strong>Client:</strong>{{ project.client }}</p>
+                <p class="card-text"><strong>Description:</strong> {{ project.description }}</p>
+                <p class="card-text"><strong>Skill Set:</strong> {{ project.requiredSkill }}</p>
+                <p class="card-text"><strong>Start Date:</strong> {{ project.startDate }}</p>
+                <p class="card-text"><strong>End Date:</strong> {{ project.endDate }}</p>
+                <div class="mt-auto d-flex justify-content-between">
+                  <button class="btn btn-secondary btn-sm " (click)="openViewModal(project)">View</button>
+                  <button class="btn btn-primary btn-sm" (click)="openAssignModal(project)">Assign</button>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+     <ng-template #noProjectsFound>
+      <div class="alert alert-info text-center">No projects found.</div>
+    </ng-template>
+  </div>
+
+  <app-message [message]="message" (closed)="message = null"></app-message>
+
+  <app-project-assign-model *ngIf="showModal" [selectedProject]="selectedProject"
+    [allEmployeesUnAssigned]="allEmployeesUnAssigned" (employeeAssigned)="handleEmployeeAssignment($event)"
+    (close)="showModal = false"><!--we can also  add  alternate method closemodel(this.showModal=false) inside the ts file-->
+  </app-project-assign-model>
+
+  <app-assigned-list-model *ngIf="showAssignedModal" [selectedProject]="selectedProject"
+    [AllocatedEmployees]="AllocatedEmployees" (close)="showAssignedModal = false"
+    (confirmDeallocateEmployee)="confirmDeallocateEmployee($event)">
+  </app-assigned-list-model>
+
+
+  <app-confirmation-modal *ngIf="showConfirmationModal" [message]="confirmationMessage"
+    (confirmed)="handleConfirmationResponse($event)">
+  </app-confirmation-modal>

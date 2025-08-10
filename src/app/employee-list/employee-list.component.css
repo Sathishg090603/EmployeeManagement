@@ -1,0 +1,45 @@
+
+div.dropdown:hover>ul.dropdown-menu {
+  display: block;
+}
+
+ul.dropdown-menu {
+  display: none;
+}
+
+.header-ash-gradient {
+  /* Linear gradient from a slightly darker ash to a lighter ash */
+  background: linear-gradient(to bottom, #000000, #373636);
+  /* Fallback color for browsers that don't support gradients */
+  background-color: #e8e8e5;
+}
+
+.glow-hover:hover {
+  filter: drop-shadow(0 0 6px cyan);
+}
+
+.navbar-menu .nav-item {
+  border: 1px solid rgb(175, 175, 175);
+  padding: 0px 5px !important;
+}
+
+.pagination-main {
+  font-size: 12px !important;
+}
+
+.pagination-main select {
+  border-radius: 0px;
+  font-size: 12px !important;
+}
+
+.pagination-main .page-link {
+  border-radius: 0px;
+  font-size: 12px !important;
+}
+.page-item.active{
+  background-color: red;
+}
+/* table thead th{
+  height: 10px;
+  line-height: 10px;
+} */

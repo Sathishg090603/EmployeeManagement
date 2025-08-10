@@ -1,0 +1,190 @@
+<app-header [pageTitle]="'EMPLOYEE MANAGEMENT'" [subTitle]="'Employee List'" [loggedInUsername]="loggedInUsername"
+    (logout)="LogOut()">
+</app-header>
+
+<div class="container mt-5" style="font-size: 13px;">
+    <div class="d-flex justify-content-center mb-3 ">
+        <div class="position-relative w-50 d-flex justify-content-center gap-3 search-container">
+            <div class="input-group" style="width: 70%;">
+                <input type="text" id="searchEmployee" name="searchEmployee" class="form-control px-2 "
+                    style="border-radius:2px;font-size: 13px;" placeholder="Employee Name" [(ngModel)]="searchTerm"
+                    (input)="onSearchChange()">
+                <span class="input-group-text pe-2" style="border-radius:2px;font-size: 13px;"
+                    onclick="document.getElementById('searchEmployee').focus()"><i class="bi bi-search text-muted">
+                        search</i>
+                </span>
+                <div *ngIf="searchTerm && filteredSuggestions.length >0 && !selectedEmployee"
+                    class="list-group position-absolute w-100"  style="border-radius:0px;  right:0%; top:100%; overflow-y: auto;">
+                    <a *ngFor="let suggestion of filteredSuggestions" class="list-group-item list-group-item-action"
+                        (click)="selectEmployee(suggestion)">
+                        {{ suggestion.name }}
+                    </a>
+                </div>
+            </div>
+           <button class="btn btn-sm btn-outline-secondary " (click)="clearSearchAndSelection()" title="Clear Search">
+                <i class="bi bi-eraser-fill text-muted" style="font-size: 13px;"></i>
+            </button> 
+        </div>
+
+
+        <!-- <div>
+            <button class="btn btn-success me-2" [routerLink]="['/project-list']">
+                <i class="bi bi-diagram-3"></i> Map Project
+            </button>
+            <button class="btn btn-success" (click)="addNewEmployee()">
+                <i class="bi bi-person-plus"></i> Add Employee
+            </button>
+        </div> -->
+    </div>
+    <div *ngIf="!isLoading">
+    <div *ngIf="paginatedEmployees.length > 0; else noEmployeesFound">
+        <div class="table-responsive" style="border-radius: 2px;">
+            <table class="table table-light table-hover shadow-sm table-bordered">
+                <thead class="table-dark">
+                    <tr>
+                        <th class="text-center sortable-header" (click)="onSort('name')">
+                            Name
+                            <i class="ms-2 bi"
+                                [class.bi-caret-up-fill]="sortColumn === 'name' && sortDirection === 'asc'"
+                                [class.bi-caret-down-fill]="sortColumn === 'name' && sortDirection === 'desc'"
+                                [class.bi-caret-down]="sortColumn !== 'name'" aria-hidden="true"></i>
+                        </th>
+                        <th class="text-center sortable-header" (click)="onSort('department')">
+                            Department
+                            <i class="ms-2 bi"
+                                [class.bi-caret-up-fill]="sortColumn === 'department' && sortDirection === 'asc'"
+                                [class.bi-caret-down-fill]="sortColumn === 'department' && sortDirection === 'desc'"
+                                [class.bi-caret-down]="sortColumn !== 'department'" aria-hidden="true"></i>
+                        </th> 
+                        <th class="text-center sortable-header" (click)="onSort('gender')">
+                            Gender
+                            <i class="ms-2 bi"
+                                [class.bi-caret-up-fill]="sortColumn === 'gender' && sortDirection === 'asc'"
+                                [class.bi-caret-down-fill]="sortColumn === 'gender' && sortDirection === 'desc'"
+                                [class.bi-caret-down]="sortColumn !== 'gender'" aria-hidden="true"></i>
+                        </th>
+                        <th class="text-center sortable-header" (click)="onSort('doj')">
+                            DOJ
+                            <i class="ms-2 bi"
+                                [class.bi-caret-up-fill]="sortColumn === 'doj' && sortDirection === 'asc'"
+                                [class.bi-caret-down-fill]="sortColumn === 'doj' && sortDirection === 'desc'"
+                                [class.bi-caret-down]="sortColumn !== 'doj'" aria-hidden="true"></i>
+                        </th>
+                        <th class="text-center">Actions
+                            <button class="btn btn-outline-danger btn-sm ms-2" (click)="downloadPdf()"
+                                title="Download Employees List as PDF">
+                                <i class="bi bi-file-earmark-pdf"></i>
+                            </button>
+                            <button class="btn btn-outline-success btn-sm ms-2" (click)="downloadExcel()"
+                                title="Download Employees List as Excel">
+                                <i class="bi bi-file-earmark-excel"></i>
+                            </button>
+                        </th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr *ngFor="let employee of paginatedEmployees">
+                        <td class="text-center">{{ employee.name }}</td>
+                        <td class="text-center">{{ employee.department }}</td>
+                        <td class="text-center">{{ employee.gender }}</td>
+                        <td class="text-center">{{ employee.doj }}</td>
+                        <td class="text-center">
+                            <button class="btn btn-outline-secondary btn-sm me-2"
+                                [routerLink]="['/employee-form', employee.id, 'view']"
+                                [queryParams]="{from:'employee-list'}" title="View Details"><i class="bi bi-eye-fill">
+                                    View</i> </button>
+                            <button class="btn btn-outline-secondary btn-sm me-2"
+                                [routerLink]="['/employee-form', employee.id, 'edit']" title="Edit Details"><i
+                                    class="bi bi-pencil-fill"> Edit</i></button>
+                            <button class="btn btn-outline-danger btn-sm" (click)="confirmDeleteEmployee(employee)"><i
+                                    class="bi bi-trash-fill" title="Delete Record"> Delete</i></button>
+
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+    </div>
+
+    <ng-template #noEmployeesFound>
+        <div class="alert alert-danger text-center">No employees found.</div>
+    </ng-template>
+
+
+    <nav aria-label="Page navigation" class="d-flex justify-content-between align-items-baseline pagination-main"
+        >
+        <div class="d-flex align-items-center justify-content-start me-3">
+            Total Records : {{allEmployees.length}}
+        </div>
+        <div class="d-flex justify-content-start gap-3 align-items-baseline">
+            <select id="pageSize" [(ngModel)]="pageSize" (ngModelChange)="onPageSizeChange()"
+                class="form-select w-auto">
+                <option [ngValue]="2">2</option>
+                <option [ngValue]="5">5</option>
+                <option [ngValue]="10">10</option>
+                <option [ngValue]="20">20</option>
+                <option [ngValue]="50">50</option>
+            </select>
+            <ul *ngIf="totalPages > 1 && !selectedEmployee" class="pagination justify-content-end">
+                <li class="page-item" [class.disabled]="currentPage === 1">
+                    <a class="page-link" (click)="prevPage()" tabindex="-1" aria-disabled="true">Previous</a>
+                </li>
+
+                <li class="page-item" *ngFor="let page of getPages()">
+                    <a class="page-link" (click)="goToPage(page)"
+                        [ngStyle]="currentPage === page ? {'background-color': 'black', 'color': '#fff'} : {}">{{ page
+                        }}</a>
+                </li>
+
+                <li class="page-item" [class.disabled]="currentPage === totalPages">
+                    <a class="page-link" (click)="nextPage()">Next</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <app-message [message]="message" (closed)="message = null">
+    </app-message>
+
+    <app-confirmation-modal *ngIf="showConfirmationModal" [message]="confirmationMessage" [title]="'Confirm Deletion'"
+        (confirmed)="deleteEmployee($event)">
+    </app-confirmation-modal>
+</div>
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-3">
+    </div>
+
+    <div class="row mt-4 mb-4">
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-dark text-white">
+                    <h6>Employee Gender Distribution</h6>
+                </div>
+                <div class="card-body" style="height: 300px;">
+                    <canvas #genderPieChartCanvas></canvas>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-dark text-white">
+                    <h6>Employee Department Distribution</h6>
+                </div>
+                <div class="card-body" style="height: 300px;">
+                    <canvas #departmentPieChartCanvas></canvas>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4">
+            <div class="card shadow-sm">
+                <div class="card-header text-center bg-dark text-white">
+                    <h6>Employee Skills Chart </h6>
+                </div>
+                <div class="card-body" style="height: 300px;">
+                    <canvas #skillsDoughnutChartCanvas></canvas>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
